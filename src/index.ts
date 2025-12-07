@@ -21,7 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint (no caching)
 app.get("/api/v2/health", (req, res) => {
-  res.status(200).json({ status: "UP" });
+  res.status(200).json({
+    status: "healthy",
+    service: "Catalog & Discovery Service",
+    version: "1.0.0"
+  });
 });
 
 app.use(authMiddleware);
