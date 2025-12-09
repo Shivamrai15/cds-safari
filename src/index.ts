@@ -7,14 +7,12 @@ import {
   searchRouter,
   songRouter,
 } from "./routes/index.js";
-import { redis } from "./lib/redis.js";
+import { connectRedis, disconnectRedis, redis } from "./lib/redis.js";
 import { cache } from "./middlewares/cache.middleware.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { connectDB, disconnectDB } from "./lib/db.js";
 
 const PORT = process.env.PORT || 3000;
-
-await redis.connect();
 
 const app = express();
 app.use(express.json());
@@ -41,6 +39,7 @@ app.use("/api/v2/mood", moodRouter);
 
 async function startServer() {
     await connectDB();
+    await connectRedis();
     
     const server = app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
@@ -50,6 +49,7 @@ async function startServer() {
         console.log(`\n${signal} received. Shutting down gracefully...`);
         server.close(async () => {
             await disconnectDB();
+            await disconnectRedis();
             console.log("Server closed");
             process.exit(0);
         });
