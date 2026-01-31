@@ -6,8 +6,9 @@ import {
   moodRouter,
   searchRouter,
   songRouter,
+  searchRouterV3
 } from "./routes/index.js";
-import { connectRedis, disconnectRedis, redis } from "./lib/redis.js";
+import { connectRedis, disconnectRedis } from "./lib/redis.js";
 import { cache } from "./middlewares/cache.middleware.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { connectDB, disconnectDB } from "./lib/db.js";
@@ -36,6 +37,7 @@ app.use("/api/v2/artist", artistRouter);
 app.use("/api/v2/search", searchRouter);
 app.use("/api/v2/genre", genreRouter);
 app.use("/api/v2/mood", moodRouter);
+app.use("/api/v3/search", searchRouterV3);
 
 async function startServer() {
     await connectDB();
