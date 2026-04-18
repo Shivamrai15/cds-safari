@@ -1,9 +1,9 @@
 import { Router } from "express";
 import {
-  getAlbumById,
-  getNewReleases,
-  getRecommendedAlbums,
-  getSimilarAlbums,
+	getAlbumById,
+	getNewReleases,
+	getRecommendedAlbums,
+	getSimilarAlbums,
 } from "../controllers/album.controller.js";
 
 export const albumRouter = Router();

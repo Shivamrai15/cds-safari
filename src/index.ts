@@ -1,12 +1,12 @@
 import express from "express";
 import {
-  albumRouter,
-  artistRouter,
-  genreRouter,
-  moodRouter,
-  searchRouter,
-  songRouter,
-  searchRouterV3
+    albumRouter,
+    artistRouter,
+    genreRouter,
+    moodRouter,
+    searchRouter,
+    songRouter,
+    searchRouterV3
 } from "./routes/index.js";
 import { connectRedis, disconnectRedis } from "./lib/redis.js";
 import { cache } from "./middlewares/cache.middleware.js";
@@ -21,11 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint (no caching)
 app.get("/api/v2/health", (req, res) => {
-  res.status(200).json({
-    status: "healthy",
-    service: "Catalog & Discovery Service",
-    version: "1.0.0"
-  });
+    res.status(200).json({
+        status: "healthy",
+        service: "Catalog & Discovery Service",
+        version: "1.0.0"
+    });
 });
 
 app.use(authMiddleware);
@@ -42,7 +42,7 @@ app.use("/api/v3/search", searchRouterV3);
 async function startServer() {
     await connectDB();
     await connectRedis();
-    
+
     const server = app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });

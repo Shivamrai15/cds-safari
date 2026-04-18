@@ -1,8 +1,8 @@
 import { Router } from "express";
 import {
-  getMoodById,
-  getMoods,
-  getMoodSongs,
+    getMoodById,
+    getMoods,
+    getMoodSongs,
 } from "../controllers/mood.controller.js";
 
 export const moodRouter = Router();

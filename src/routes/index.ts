@@ -7,11 +7,11 @@ import { moodRouter } from "./mood.routes.js";
 import { searchRouterV3 } from "./v3/search.route.js";
 
 export {
-  albumRouter,
-  songRouter,
-  artistRouter,
-  searchRouter,
-  genreRouter,
-  moodRouter,
-  searchRouterV3
+    albumRouter,
+    songRouter,
+    artistRouter,
+    searchRouter,
+    genreRouter,
+    moodRouter,
+    searchRouterV3
 };

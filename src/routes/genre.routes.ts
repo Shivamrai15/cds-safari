@@ -1,8 +1,8 @@
 import { Router } from "express";
 import {
-  getGenreById,
-  getGenres,
-  getGenreSongs,
+    getGenreById,
+    getGenres,
+    getGenreSongs,
 } from "../controllers/genre.controller.js";
 
 export const genreRouter = Router();
