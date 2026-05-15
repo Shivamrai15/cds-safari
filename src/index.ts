@@ -29,7 +29,6 @@ app.get("/api/v2/health", (req, res) => {
 });
 
 app.use(authMiddleware);
-app.use(cache);
 
 app.use("/api/v2/album", albumRouter);
 app.use("/api/v2/song", songRouter);

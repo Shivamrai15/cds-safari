@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { search, searchAlbums, searchArtists, searchSongs } from "../controllers/search.controller.js";
+import { search, searchAlbums, searchArtists, searchSongs } from "../controllers/v3/search.controller.js";
 
 export const searchRouter = Router();
 
