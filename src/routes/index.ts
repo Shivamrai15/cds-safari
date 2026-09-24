@@ -5,6 +5,7 @@ import { searchRouter } from "./search.routes.js";
 import { genreRouter } from "./genre.routes.js";
 import { moodRouter } from "./mood.routes.js";
 import { searchRouterV3 } from "./v3/search.route.js";
+import { adRouter } from "./ad.routes.js";
 
 export {
     albumRouter,
@@ -13,5 +14,6 @@ export {
     searchRouter,
     genreRouter,
     moodRouter,
-    searchRouterV3
+    searchRouterV3,
+    adRouter
 };

@@ -6,7 +6,8 @@ import {
     moodRouter,
     searchRouter,
     songRouter,
-    searchRouterV3
+    searchRouterV3,
+    adRouter
 } from "./routes/index.js";
 import { connectRedis, disconnectRedis } from "./lib/redis.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
@@ -36,6 +37,7 @@ app.use("/api/v2/search", searchRouter);
 app.use("/api/v2/genre", genreRouter);
 app.use("/api/v2/mood", moodRouter);
 app.use("/api/v3/search", searchRouterV3);
+app.use("/api/v2/ad", adRouter);
 
 async function startServer() {
     await connectDB();
