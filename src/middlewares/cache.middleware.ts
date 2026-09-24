@@ -1,33 +1,37 @@
 import type { NextFunction, Request, Response } from "express";
 import { redis } from "../lib/redis.js";
 
-export async function cache(
-    req: Request,
-    res: Response,
-    next: NextFunction
-) {
-    const key = `cache:${req.url}`;
-
-    try {
-        const cachedData = await redis.get(key);
-
-        if (cachedData) {
-            return res.status(200).json(JSON.parse(cachedData));
+export function cache(ttlSeconds = 60) {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        if (!redis.isReady) {
+            return next();
         }
 
-        const originalJson = res.json.bind(res);
+        const key = `cache:${req.originalUrl}`;
 
-        res.json = (body: any): Response => {
-            redis
-                .setEx(key, 60, JSON.stringify(body))
-                .catch((err) => console.error("Redis setEx error:", err));
+        try {
+            const cachedData = await redis.get(key);
 
-            return originalJson(body);
-        };
+            if (cachedData) {
+                return res.status(200).json(JSON.parse(cachedData));
+            }
 
-        next();
-    } catch (error) {
-        console.error("Cache Middleware Error:", error);
-        next();
-    }
+            const originalJson = res.json.bind(res);
+
+            res.json = (body: any): Response => {
+                if (res.statusCode === 200) {
+                    redis
+                        .setEx(key, ttlSeconds, JSON.stringify(body))
+                        .catch((err) => console.error("Redis setEx error:", err));
+                }
+
+                return originalJson(body);
+            };
+
+            next();
+        } catch (error) {
+            console.error("Cache Middleware Error:", error);
+            next();
+        }
+    };
 }

@@ -8,8 +8,7 @@ import {
     songRouter,
     searchRouterV3
 } from "./routes/index.js";
-// import { connectRedis, disconnectRedis } from "./lib/redis.js";
-// import { cache } from "./middlewares/cache.middleware.js";
+import { connectRedis, disconnectRedis } from "./lib/redis.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { connectDB, disconnectDB } from "./lib/db.js";
 
@@ -40,7 +39,7 @@ app.use("/api/v3/search", searchRouterV3);
 
 async function startServer() {
     await connectDB();
-    // await connectRedis();
+    connectRedis().catch(() => console.error("Starting without Redis cache"));
 
     const server = app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
@@ -50,7 +49,7 @@ async function startServer() {
         console.log(`\n${signal} received. Shutting down gracefully...`);
         server.close(async () => {
             await disconnectDB();
-            // await disconnectRedis();
+            await disconnectRedis();
             console.log("Server closed");
             process.exit(0);
         });

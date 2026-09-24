@@ -3,70 +3,43 @@ import type { Album, Song } from "../../generated/prisma/index.js";
 import { db } from "../lib/db.js";
 import { qdrant } from "../lib/qdrant.js";
 import { AIShuffleSchema } from "../schemas/ai-shuffle.schema.js";
+import { SongBatchSchema } from "../schemas/song-batch.schema.js";
 
 const BATCH = 10;
 
 export async function getTrending(req: Request, res: Response) {
     try {
-        const { cursor } = req.query;
+        const offset = Math.max(0, Number.parseInt(String(req.query.cursor ?? "0"), 10) || 0);
 
-        let songs: (Song & { album: Album })[] = [];
+        const ranking = await db.$runCommandRaw({
+            aggregate: "View",
+            pipeline: [
+                { $group: { _id: "$songId", views: { $sum: 1 } } },
+                { $sort: { views: -1, _id: 1 } },
+                { $skip: offset },
+                { $limit: BATCH },
+            ],
+            cursor: {},
+        });
 
-        if (cursor) {
-            songs = await db.song.findMany({
-                where: {
-                    view: {
-                        some: {},
-                    },
-                },
-                include: {
-                    album: true,
-                },
-                orderBy: [
-                    {
-                        view: {
-                            _count: "desc",
-                        },
-                    },
-                    {
-                        name: "asc",
-                    },
-                ],
-                skip: 1,
-                cursor: {
-                    id: cursor as string,
-                },
-                take: BATCH,
-            });
-        } else {
-            songs = await db.song.findMany({
-                where: {
-                    view: {
-                        some: {},
-                    },
-                },
-                include: {
-                    album: true,
-                },
-                orderBy: [
-                    {
-                        view: {
-                            _count: "desc",
-                        },
-                    },
-                    {
-                        name: "asc",
-                    },
-                ],
-                take: BATCH,
-            });
-        }
+        const rankedIds = ((ranking?.cursor as { firstBatch?: { _id: { $oid: string } }[] } | undefined)
+            ?.firstBatch ?? [])
+            .map((item) => item._id.$oid);
 
-        let nextCursor = null;
+        const songs: (Song & { album: Album })[] = await db.song.findMany({
+            where: {
+                id: {
+                    in: rankedIds,
+                },
+            },
+            include: {
+                album: true,
+            },
+        });
 
-        if (songs.length === BATCH) {
-            nextCursor = songs[BATCH - 1]?.id;
-        }
+        songs.sort((a, b) => rankedIds.indexOf(a.id) - rankedIds.indexOf(b.id));
+
+        const nextCursor = rankedIds.length === BATCH ? String(offset + BATCH) : null;
 
         return res.status(200).json({
             items: songs,
@@ -124,6 +97,48 @@ export async function getSongById(req: Request, res: Response) {
         res
             .status(500)
             .json({ status: false, message: "Internal Server Error", data: {} });
+    }
+}
+
+export async function getSongsByIds(req: Request, res: Response) {
+    try {
+        const validatedData = await SongBatchSchema.safeParseAsync(req.body);
+
+        if (!validatedData.success) {
+            return res
+                .status(400)
+                .json({ status: false, message: "Bad Request", data: [] });
+        }
+
+        const ids = Array.from(new Set(validatedData.data.ids));
+
+        const songs = await db.song.findMany({
+            where: {
+                id: {
+                    in: ids,
+                },
+            },
+            include: {
+                album: true,
+                artists: {
+                    select: {
+                        id: true,
+                        name: true,
+                        image: true,
+                    },
+                },
+            },
+        });
+
+        songs.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+        return res
+            .status(200)
+            .json({ status: true, message: "Success", data: songs });
+    } catch (error) {
+        console.error("GET SONGS BY IDS ERROR:", error);
+        res
+            .status(500)
+            .json({ status: false, message: "Internal Server Error", data: [] });
     }
 }
 
@@ -242,8 +257,8 @@ export async function getAIShuffledSongs(req: Request, res: Response) {
             .filter((id): id is string => !!id);
         if (songIds.length === 0) {
             return res
-                .status(404)
-                .json({ status: false, message: "No recommendations found", data: [] });
+                .status(200)
+                .json({ status: true, message: "No recommendations found", data: [] });
         }
 
         const songs = await db.song.findMany({
